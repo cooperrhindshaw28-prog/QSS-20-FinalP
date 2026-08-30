@@ -1,0 +1,349 @@
+\documentclass[9pt,twoside]{pnas-new}
+
+\articletype{CLASSIFICATION}
+\templatetype{pnasmathematics}
+
+\setboolean{displaywatermark}{false}
+
+\begin{document}
+
+\title{Poverty Traps in Rural Kenya: A Balboni Style Replication}
+
+\author[a]{Cooper Hindshaw}
+
+\affil[a]{Dartmouth College}
+
+\leadauthor{Hindshaw}
+
+\begin{abstract}
+
+In 2022, Balboni contrasts two arguments for poverty, talent disparity and poverty
+traps, and uses experimental data using productive asset transfers in Bangladesh to determine
+that there was a poverty trap and where the specific threshold exists. Using this framework, this
+paper attempts to replicate Balboni's discovery on GiveDirectly's unconditional cash transfer
+experimental data from rural Kenya in hopes of finding similar dynamics in another setting
+around the world. The GiveDirectly dataset was first cleaned and analyzed for descriptive
+statistics using pandas in python, and cubic and Kernel Weighted Local Linear Regressions were
+fit the pre and post treatment data to determine whether the shape of the fitted regression
+modeled an unstable or stable steady state. The outputs of the model found evidence of a stable
+steady state, failing to indicate the existence of a poverty trap; however, reaching a null
+conclusion may have been caused by differences in the original experimental design between
+Balboni and GiveDirectly, rather than the lack of a poverty trap.
+
+\end{abstract}
+
+\dates{This manuscript was compiled on \today}
+
+\maketitle
+\thispagestyle{firststyle}
+
+\ifthenelse{\boolean{shortarticle}}
+{\ifthenelse{\boolean{singlecolumn}}{\abscontentformatted}{\abscontent}}
+{}
+
+\Firstpage
+
+
+% ============================================================
+% INTRODUCTION
+% ============================================================
+
+\section{Introduction/Related Works}
+
+As of 2024, over seven hundred million people world wide live on less than \$2.15 a day
+\cite{worldbank2024}. Moreover, this large group of people are disproportionately impacted by
+the health issues both in and outside the work places, lack of education, and extreme hunger
+\cite{murray2006}. One important debate within development economics is over whether extreme
+chronic poverty reflects difference in intrinsic production capability or whether poor households
+and individuals are trapped below a line that prevents further sustained accumulation of assets,
+i.e. a poverty trap. 
+
+
+The distinction between these two explanations matters because they demand different policy responses. If one stays poor because of existing disparities in ability, then welfare or direct cash transfers may prove more helpful without changing the households economic trajectory. However, if there is evidence of a persistent, self
+reinforcing poverty trap, it may be possible for households to be pushed above the unstable equilibrium through a sufficiently large ``big push'' policy. Such a policy may move households out of the
+lower threshold towards the higher equilibrium, which encourages greater future growth
+\cite{burgess2026}.
+
+
+One of the largest issues surrounding poverty traps, is that they have relatively limited
+empirical support and fail to explain poverty worldwide, being much rarer than current
+development economics assumes \cite{kraay2014}. However, Balboni provides
+empirical evidence of the existence of a poverty trap in rural Bangladesh through the transfer of
+productive assets, mainly livestock, and monitoring productive asset growth over many years,
+and found an unstable steady state, where households below the asset threshold struggle to rise, and
+households above the asset threshold are able to continue to accumulate assets
+\cite{balboni2022}. This paper tests whether similar asset dynamics appear among poor
+households participating in GiveDirectly's randomized cash transfer experiment in Rural Kenya.
+
+
+% ============================================================
+% METHODS
+% ============================================================
+
+\section{Methods}
+
+First the data was obtained from the publicly available GiveDirectly experiment done by Haushofer and Shapiro
+documenting unconditional cash transfers of differing sizes through the online banking services
+M-Pesa \cite{haushofer2016}. Once the data was downloaded, the dataset was
+cleaned and organized in Python using pandas. Cleaning included constructing treatment categories, selecting the baseline and follow-up asset variables, checking the productive-asset components for missing values, and constructing the productive-asset total. No missing values were found in the asset components used in the final analysis. The analysis focuses on household productive
+assets at baseline and at follow up measured in PPP-adjusted USD. The unit of analysis for this study is the household, which was also used in the original experiment. The dataset contains baseline surveys conducted in 2011 and follow-up surveys conducted in 2012  from the same households over an approximately 14 month window. These observations are linked using the household survey identifier. No external datasets were merged into the GiveDirectly data for the primary analysis.
+
+
+To make the Kenyan asset measure as comparable as possible to Balboni et al., I constructed productive assets by combining the available categories corresponding most closely to livestock, business or agricultural assets, and transportation assets. Balboni et al. define productive assets as the total value of livestock, poultry, business assets such as tools, vehicles, and structures, and land. The GiveDirectly livestock measure also contains subcategories for cows, small livestock, and birds, making it reasonably comparable to the livestock and poultry components used by Balboni. The available land variable was measured in acres rather than PPP-adjusted monetary value, so it could not be added to the monetary productive-asset index.
+
+
+Because the asset values where highly skewed right with many zero observations I used a log(1+x)
+transformation for the transition analysis:
+
+\[
+A^{log}_{it} = \log(1 + A_{it}),
+\]
+
+where $A_{it}$ represents productive assets for household $i$ at time $t$.
+The binary control, treatxsmall, and treatxlarge
+variables were then combined into one treatment variable. I was particularly excited by the
+existence of both a small and large treatment type as the possible presence of an unstable steady
+state for the larger treatment could represent an asset threshold.
+
+Following the framework of Balboni et al. 2022, I estimate an asset transition function
+relating baseline productive assets to follow-up productive assets. Let $K_t$ represent productive
+assets at baseline and $K_{t+1}$ productive assets at follow up. The estimated transition function
+can be represented as
+
+\[
+K_{t+1} = \phi(K_t).
+\]
+
+The 45-degree line represents the set of points where productive assets remain unchanged
+between periods:
+
+\[
+K_{t+1} = K_t.
+\]
+
+An intersection between the estimated transition function and the 45-degree line therefore
+represents a steady state. The stability of that steady state depends on the slope of the estimated
+transition function at the crossing. If
+
+\[
+\phi'(K^*) > 1,
+\]
+
+the crossing is unstable and is consistent with an asset-based poverty trap. If
+
+\[
+\phi'(K^*) < 1,
+\]
+
+the crossing is stable.
+
+A poverty trap requires the estimated function to cross the 45-degree line at an unstable
+steady state. An unstable transition function therefore must have a slope exceeding one, and a
+crossing with a slope below one represents a stable steady state.
+
+I first estimated the transition using a cubic polynomial regression. However, because the
+cubic model imposes a specific form upon the data, I also use a kernel-weighted local linear
+regression, which allows for a more flexible transition function across asset distribution. The local-linear kernel regression was estimated using a bandwidth of 0.6. This bandwidth was selected after the automatically chosen bandwidth produced highly unstable local estimates in regions with many repeated baseline asset values. Both the
+cubic model and kernel regressions are estimated separately for each treatment type.
+
+To identify thresholds, I identified points where the transition function intersected with
+the 45-degree line and calculated the slope at each point. Crossings with a slope above 1 were
+classified as unstable and indicative of a poverty trap, while crossings with a slope below 1
+were classified as stable.
+
+
+Assignment to the GiveDirectly treatment conditions was randomized. However, the transition-function analysis examines the relationship between baseline and follow-up productive assets and is not interpreted as establishing a causal effect of initial asset ownership.
+
+
+Finally, as supplementary analysis, as prompted by my professor, I included a
+multivariate regression predicting the logged productive assets at follow up using baseline
+logged productive assets, a small cash transfer, a large cash transfer, the interaction between
+baseline assets and a small cash transfer, and the interaction between baseline assets and a large
+cash transfer (Appendix A1).
+
+
+% ============================================================
+% DATA
+% ============================================================
+
+\section{Data}
+
+\begin{table}[ht]
+\centering
+\caption{Baseline productive assets by treatment group. Productive assets are measured in PPP-adjusted USD and combine livestock, agricultural or business-related assets, and transportation assets. The table reports the number of observations, mean baseline productive assets, and standard deviation for each treatment group.}
+\begin{tabular}{lrrr}
+\toprule
+ & Count & Mean & SD \\
+\midrule
+Control & 937 & 108.4 & 239.1 \\
+Small Transfer & 366 & 195.3 & 283.0 \\
+Large Transfer & 137 & 199.8 & 310.8 \\
+\bottomrule
+\end{tabular}
+\label{tab:baseline}
+\end{table}
+
+As seen in Table~\ref{tab:baseline}, initial means appear to vary by treatment group, with
+the small transfer treatment having the highest mean and standard deviation, but variation is
+small compared to within group-variation. This suggests a large portion of in group
+heterogeneity, which prompted examination with density rather than simply means alone.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\linewidth]{baseline_kde.png}
+\caption{Distribution of baseline log(1 + productive assets) in PPP-adjusted USD. The sample contains a large mass of households with zero measured productive assets, while positive asset holdings are broadly unimodal.}
+\label{fig:kde}
+\end{figure}
+
+Figure~\ref{fig:kde} presents the distribution of the logged baseline productive assets plus one using
+a kernel density estimator. The distribution is highly right skewed and contains a large mass of
+individuals at the zero level. Among households with positive assets, however, the data are largely
+unimodal, rather than divided into two separate clusters. This is an important difference from
+bimodality because the presence of two distinct assets clusters suggests the existence of an asset
+based poverty trap. The distinct mass at zero represents a substantial group of households with no measured productive assets under the definition used in this analysis.
+
+In comparison between Balboni's Bangladesh study and GiveDirectly Kenya's dataset
+there are many large variations. To improve compatibility, I created the productive asset variable
+to attempt to replicate Balboni's use of productive assets. However, there were many important
+differences between the two experiments and resulting data that must be acknowledged. First of
+all the lack of bimodality in the GiveDirectly dataset. This much be approached cautiously
+however because GiveDirectly is more heavily focused on poorer communities, while Balboni
+took a multi-class productive asset measure. Additionally, the timescale of Balboni is much
+longer, spanning over a decade, while GiveDirectly's check in was just over a year. Another one
+of the largest discontinuities between the two datasets is the transfer of assets. In GiveDirectly
+the transfer of assets is an unconditional digital cash transfer using M-PESA. In Balboni's
+experiment, the transfer of assets was solely productive assets, namely livestock.
+
+
+% ============================================================
+% RESULTS
+% ============================================================
+
+\section{Results}
+
+
+The estimated transition functions do not provide clear evidence of the Balboni style poverty trap in the Kenyan dataset. Figure 2 plots the estimated kernel-weighted local regression transition functions separately for each treatment type and compares them to the 45-degree line.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.9\linewidth]{kernel_transition.png}
+\caption{Kernel-weighted local-linear productive-asset transition functions by treatment group. The dashed 45-degree line represents no change between baseline and follow-up assets. All estimated crossings occur with local slopes below one, providing no evidence of an unstable asset threshold.}
+\label{fig:transition}
+\end{figure}
+
+Figure 2 also shows that the estimated transition functions differ in shape across treatment groups. The treatment curves do not simply represent parallel upward shifts from the control group. Instead, the estimated relationships differ in both location and shape across transfer groups. Despite these differences, none of the functions displays the combination of a crossing and local slope greater than one necessary to identify an unstable threshold.
+
+
+\begin{table}[ht]
+\centering
+\caption{Estimated crossings of the 45-degree line by treatment group. The table reports the sample size, local slope of the kernel-weighted transition function at the crossing, the logged productive-asset value of the crossing, and the USD PPP productive-asset value of the crossing. A local slope greater than one would indicate an unstable threshold; all estimated slopes are below one.}
+\begin{tabular}{lrrrr}
+\toprule
+ &N & Slope & Log Value & PPP Value\\
+\midrule
+Control & 937 & 0.560 & 3.81& 44.14\\
+Small Transfer& 366 & 0.629 & 5.11 & 164.80\\
+Large Transfer & 137 & 0.367 & 5.18& 177.34\\
+\bottomrule
+\end{tabular}
+\label{tab:crossings}
+\end{table}
+
+The control group crosses the 45-degree line at a lower level of baseline assets than either treatment group, with a log crossing value of 3.81, corresponding to approximately \$44.14 in PPP-adjusted productive assets. By comparison, the small transfer group crosses at 5.11, or approximately \$164.80 PPP, while the large transfer group crosses at 5.18, or approximately \$177.34 PPP. This indicates that the estimated steady state is located at a higher asset level in the treatment groups than in the control group. However, the existence of a higher crossing alone is not evidence of a poverty trap. What matters for the Balboni framework is whether the transition function crosses the 45-degree line with a slope greater than one.
+
+The small transfer group has the steepest local slope at its crossing, at 0.629. This is higher than the control group's slope of 0.560, suggesting somewhat stronger persistence in productive assets around the estimated steady state. Nevertheless, because the slope remains below one, deviations from the crossing are predicted to converge back toward the steady state rather than diverge away from it.
+
+The large transfer group has the highest estimated crossing point, at a log value of 5.18, corresponding to approximately \$177.34 PPP, but also the lowest local slope, at 0.367. This result is particularly important because the large transfer was the treatment most likely to generate a ``big push'' capable of moving households across a potential asset threshold. Instead, the relatively flat transition function around the crossing provides no evidence that the larger transfer group exhibits the unstable asset dynamics predicted by a poverty-trap model.
+
+
+Therefore, the pattern differs from the central result in Balboni et al. In a Balboni-style poverty trap, households on opposite sides of an unstable threshold should move in different directions over time: households below the threshold should move toward a low-asset equilibrium, while households above it should accumulate toward a higher equilibrium. In the GiveDirectly sample, all three estimated crossings have slopes below one. The estimated dynamics therefore resemble convergence toward stable steady states rather than divergence around an unstable threshold.
+
+
+% ============================================================
+% DISCUSSION
+% ============================================================
+
+\section{Discussion}
+
+
+As mentioned earlier, the GiveDirectly dataset and Bangladesh dataset are very different,
+which may help explain the differences in findings. First of all, the difference in timescales may
+have played a very important role.
+
+
+First off, Balboni's experiment was done over an 11 year period compared to a 14 month period. The vast differences in time frames could potentially account for the differences in findings because households haven't had enough time to react to the influx of wealth. Additionally, a longer period would allow for
+vastly different scales of accumulation than GiveDirectly's limited period. As such the null
+finding could be caused by lack of time for accumulation because if there was a poverty trap in Kenya, it may need more accumulation time to be visible within the data.
+
+
+Additionally, the type of transfer could have played a significant role in the differences between the two studies. Balboni's transfer was livestock, a high value productive asset that creates income. On the other hand, GiveDirectly provided unconditional cash transfers directly to the households. Unlike the productive asset transfer that creates new income opportunity and occupation caring to the animal, the one time cash transfer does not. Additionally the presence of a productive asset like livestock likely could have encouraged reinvested earnings, while cash could potentially be used
+on other things first, like medicine, necessities, or other consumption needs that may not directly increase the productive asset measurement used here. Once they have spent that money, there may be none left over for a significant productive asset purchase. As such, a productive asset transfer may be more conducive for escaping a poverty trap than a cash transfer. 
+
+
+Furthermore, Balboni's definition of a productive asset was fundamentally different from this paper's self created definition. Balboni's measure included livestock, poultry, business assets, and land. I tried to replicate this using transportation vehicles because they are discussed in the paper as they connect production to markets. However, the narrower definition of a productive asset within this study could have created a discrepancy, as money invested into business wouldn't have been tracked in this model.
+
+
+Finally,
+the setting may have caused this null finding. Kenya and Bangladesh have completely different
+economic systems, so despite the fact that they are both impoverished. Differences in markets, occupations, credit access, and returns to productive assets across the two settings may also affect whether poverty trap dynamics emerge.
+
+
+% ============================================================
+% CONCLUSION
+% ============================================================
+
+\section{Conclusion}
+
+This paper tests whether asset based poverty traps as discussed in Balboni's paper about
+Bangladesh can be replicated in GiveDirectly's unconditional cash transfer experiment in rural
+Kenya. Although the estimated kernel-weighted local regression functions intersected the 45$^\circ$
+line, the local slopes were all less than one, indicating that they are stable steady state
+equilibria, which are not indicative of poverty traps. Therefore, I find little evidence of a
+Balboni style asset threshold within this sample. However, differences in time-scale, asset
+transfer type, initial sample composition, and general location may have played a significant role
+in shaping the results. As such future research should include a longer time frame panel of
+Kenyan data and more comparable asset type transfers to make a stronger test on whether such
+asset thresholds generalize across settings.
+
+
+% ============================================================
+% REFERENCES
+% ============================================================
+
+\bibliography{references}
+
+
+% ============================================================
+% AGENTIC ANALYSIS APPENDIX
+%
+% Add your AI transcripts/reflection here when ready.
+% Nothing below will appear until you uncomment it.
+% ============================================================
+
+% \clearpage
+% \appendix
+%
+% \section{Agentic Analysis}
+%
+% [Insert your critical reflection here.]
+%
+% \subsection{Example AI Interaction 1}
+%
+% \textbf{Prompt:} [Insert prompt]
+%
+% \textbf{Response:} [Insert relevant response]
+%
+% \textbf{Reflection:} [Explain what you accepted, rejected,
+% or corrected.]
+%
+% \subsection{Example AI Interaction 2}
+%
+% \textbf{Prompt:} [Insert prompt]
+%
+% \textbf{Response:} [Insert relevant response]
+%
+% \textbf{Reflection:} [Explain what you accepted, rejected,
+% or corrected.]
+
+
+\end{document}
